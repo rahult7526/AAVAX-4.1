@@ -1,66 +1,56 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.17;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+contract ERC20 {
+    uint public totalSupply;
+    mapping(address => uint) public balanceOf;
+    mapping(address => mapping(address => uint)) public allowance;
+    string public name = "PowerUpRahul";
+    string public symbol = "PWR";
+    uint8 public decimals = 18;
 
-contract MyToken is ERC20, Ownable {
-    // Transaction fee percentage (1% fee by default)
-    uint256 public feePercentage = 1;
-    address public feeRecipient;
+    event PowerTransferred(address indexed from, address indexed to, uint value);
+    event PowerApproved(address indexed player, address indexed spender, uint value);
 
-    // Event to log fee changes
-    event FeePercentageChanged(uint256 newFeePercentage);
-    event FeeRecipientChanged(address newFeeRecipient);
-
-    constructor(uint256 initialSupply, address _feeRecipient) ERC20("MyToken", "MTK") {
-        _mint(msg.sender, initialSupply);
-        feeRecipient = _feeRecipient;
-    }
-
-    // Override transfer to include a fee
-    function transfer(address recipient, uint256 amount) public override returns (bool) {
-        uint256 fee = (amount * feePercentage) / 100;
-        uint256 amountAfterFee = amount - fee;
-        _transfer(_msgSender(), recipient, amountAfterFee);
-        if (fee > 0) {
-            _transfer(_msgSender(), feeRecipient, fee);
-        }
+    // Function for players to send Power-Ups to other players
+    function transferPowerUp(address recipient, uint amount) external returns (bool) {
+        balanceOf[msg.sender] -= amount;
+        balanceOf[recipient] += amount;
+        emit PowerTransferred(msg.sender, recipient, amount);
         return true;
     }
 
-    // Override transferFrom to include a fee
-    function transferFrom(address sender, address recipient, uint256 amount) public override returns (bool) {
-        uint256 fee = (amount * feePercentage) / 100;
-        uint256 amountAfterFee = amount - fee;
-        _transfer(sender, recipient, amountAfterFee);
-        if (fee > 0) {
-            _transfer(sender, feeRecipient, fee);
-        }
-        _approve(sender, _msgSender(), allowance(sender, _msgSender()) - amount);
+    // Function for players to authorize another player to spend their Power-Ups
+    function approveSpender(address spender, uint amount) external returns (bool) {
+        allowance[msg.sender][spender] = amount;
+        emit PowerApproved(msg.sender, spender, amount);
         return true;
     }
 
-    // Mint new tokens
-    function mint(address to, uint256 amount) public onlyOwner {
-        _mint(to, amount);
+    // Function for a player to spend Power-Ups on behalf of another player
+    function spendPowerUpFrom(
+        address player,
+        address recipient,
+        uint amount
+    ) external returns (bool) {
+        allowance[player][msg.sender] -= amount;
+        balanceOf[player] -= amount;
+        balanceOf[recipient] += amount;
+        emit PowerTransferred(player, recipient, amount);
+        return true;
     }
 
-    // Burn tokens
-    function burn(uint256 amount) public {
-        _burn(_msgSender(), amount);
+    // Function for players to create new Power-Ups
+    function mintPowerUp(uint amount) external {
+        balanceOf[msg.sender] += amount;
+        totalSupply += amount;
+        emit PowerTransferred(address(0), msg.sender, amount);
     }
 
-    // Set a new fee percentage
-    function setFeePercentage(uint256 newFeePercentage) public onlyOwner {
-        require(newFeePercentage <= 100, "Fee percentage cannot exceed 100");
-        feePercentage = newFeePercentage;
-        emit FeePercentageChanged(newFeePercentage);
-    }
-
-    // Set a new fee recipient
-    function setFeeRecipient(address newFeeRecipient) public onlyOwner {
-        feeRecipient = newFeeRecipient;
-        emit FeeRecipientChanged(newFeeRecipient);
+    // Function for players to destroy their Power-Ups
+    function burnPowerUp(uint amount) external {
+        balanceOf[msg.sender] -= amount;
+        totalSupply -= amount;
+        emit PowerTransferred(msg.sender, address(0), amount);
     }
 }
