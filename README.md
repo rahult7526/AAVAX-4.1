@@ -1,99 +1,71 @@
-# Game Contracts
+# Project Setup Guide
 
-This repository contains Solidity smart contracts for a simple game that includes various features such as battling, exploring, trading, and an in-game currency (ERC-20 token).
+This guide will walk you through setting up and deploying the `Vault.sol` and `ERC20.sol` smart contracts on an Avalanche subnet using WSL and the Avalanche CLI.
 
-## Contracts
+## Prerequisites
 
-1. **Battle.sol**
-   - **Purpose:** Allows players to register and engage in battles. The battle logic determines the winner based on attack power.
-   - **Key Functions:**
-     - `registerPlayer(uint256 _health, uint256 _attackPower)`: Registers a player with specified health and attack power.
-     - `battle(address _opponent)`: Initiates a battle between the sender and an opponent. The contract determines the winner based on attack power.
-   - **Dependencies:** None.
+1. **Windows Subsystem for Linux (WSL)**
+   - Ensure you have WSL installed and set up on your system. If you haven't installed it yet, follow the [Microsoft guide](https://docs.microsoft.com/en-us/windows/wsl/install) to install WSL.
 
-2. **Exploration.sol**
-   - **Purpose:** Enables players to explore and earn exploration points.
-   - **Key Functions:**
-     - `explore()`: Increases the player's exploration points by 1.
-     - `getPoints()`: Returns the total exploration points the player has earned.
-   - **Dependencies:** None.
+2. **Install Avalanche CLI**
+   - Open your WSL terminal and run the following command to install the Avalanche CLI:
+     ```sh
+     curl -sSfL https://raw.githubusercontent.com/ava-labs/avalanche-cli/main/scripts/install.sh | sh -s
+     ```
 
-3. **Trading.sol**
-   - **Purpose:** Facilitates trading of items between players.
-   - **Key Functions:**
-     - `trade(address _to, uint256 _amount)`: Trades a specified amount of items from the sender to the recipient.
-     - `addItem(uint256 _amount)`: Adds a specified amount of items to the sender's inventory.
-     - `getItems()`: Returns the total number of items the sender possesses.
-   - **Dependencies:** None.
+## Steps to Deploy
 
-4. **GameToken.sol**
-   - **Purpose:** Implements an ERC-20 token called "GameToken" (`GT`) that can be used as an in-game currency.
-   - **Key Functions (Inherited from ERC-20):**
-     - `balanceOf(address account)`: Returns the balance of tokens held by the specified account.
-     - `transfer(address recipient, uint256 amount)`: Transfers tokens from the sender's account to the recipient.
-     - `approve(address spender, uint256 amount)`: Approves `spender` to spend `amount` of tokens on behalf of the sender.
-     - `transferFrom(address sender, address recipient, uint256 amount)`: Transfers tokens on behalf of the owner based on allowance.
-     - `totalSupply()`: Returns the total supply of tokens in existence.
-   - **Dependencies:** OpenZeppelin's ERC-20 implementation.
+### 1. Create a Subnet
 
-## Getting Started
+After installing the Avalanche CLI, you need to create a subnet. Run the following command:
 
-### Prerequisites
+```sh
+avalanche subnet create mysubnet
+Note: Replace mysubnet with your desired subnet name.
+```
 
-- [Remix IDE](https://remix.ethereum.org/)
-- [MetaMask](https://metamask.io/) (for interacting with the contract)
+## 2. Deploy the Subnet
+Deploy the subnet you just created with the following command:
 
-### Deploying Contracts
+```sh
+Copy code
+avalanche subnet deploy mysubnet
+Note: Ensure the subnet name matches the one you created earlier.
+```
+## 3. Configuration During Creation
+When prompted with configuration questions during the creation process, use the following parameters:
 
-1. **Open Remix IDE:**
-   - Go to [Remix IDE](https://remix.ethereum.org/).
+-Select Low disk use / Low Throughput / 1.5 mil gas/s (C-Chain's setting).
+-Choose to Airdrop 1 million tokens to the default ewoq address (do not use this in production).
 
-2. **Create a New File:**
-   - Create a new Solidity file (`.sol`) in the Remix IDE for each contract (e.g., `Battle.sol`, `Exploration.sol`, `Trading.sol`, `GameToken.sol`).
+4. Compile and Deploy Contracts
+ERC20 Token Contract
+Compile:
 
-3. **Copy and Paste Contract Code:**
-   - Copy the code for each contract and paste it into the respective file.
+1. Open Remix IDE.
+2. Create a new file named ERC20.sol.
+3. Copy the ERC20.sol code into the file.
+4. Ensure the compiler version is set to ^0.8.17.
+5. Click "Compile ERC20.sol".
+## Deploy:
 
-4. **Compile Contracts:**
-   - Select the appropriate Solidity version (e.g., `0.8.9`) and compile each contract by clicking the "Compile" button in Remix.
+In the "Deploy & Run Transactions" tab, ensure the environment is set to Injected Web3 (MetaMask).
+Deploy the ERC20 contract.
+Vault Contract
+## Compile:
 
-5. **Deploy Contracts:**
-   - Go to the "Deploy & Run Transactions" tab.
-   - Select the contract you want to deploy from the dropdown.
-   - For `GameToken`, enter the initial supply (e.g., `1000000`) before deploying.
-   - Click "Deploy" to deploy the contract.
+-In Remix, create a new file named Vault.sol.
+-Copy the Vault.sol code into the file.
+-Ensure the compiler version is set to ^0.8.17.
+-Click "Compile Vault.sol".
 
-### Interacting with the Contracts
+##Deploy:
 
-- **Battle.sol:**
-  - **Register a Player:** Use `registerPlayer(_health, _attackPower)` to register a player.
-  - **Initiate a Battle:** Call `battle(_opponent)` to start a battle with another player.
+-In the "Deploy & Run Transactions" tab, ensure the environment is set to Injected Web3 (MetaMask).
+-Deploy the Vault contract by providing the address of the deployed ERC20 token contract as the constructor parameter.
+-By following these steps, you will have your Vault and ERC20 contracts set up and deployed on an Avalanche subnet. 
+-Ensure that you have your MetaMask configured to interact with the Avalanche network for successful deployment and interactions.
 
-- **Exploration.sol:**
-  - **Explore:** Use `explore()` to earn exploration points.
-  - **Check Points:** Call `getPoints()` to view your total exploration points.
-
-- **Trading.sol:**
-  - **Add Items:** Use `addItem(_amount)` to add items to your inventory.
-  - **Trade Items:** Use `trade(_to, _amount)` to trade items with another player.
-  - **Check Items:** Call `getItems()` to see the total items you possess.
-
-- **GameToken.sol:**
-  - **Check Balance:** Call `balanceOf(_address)` to check the token balance of any address.
-  - **Transfer Tokens:** Use `transfer(_to, _amount)` to transfer tokens to another address.
-  - **Approve Tokens:** Use `approve(_spender, _amount)` to allow another address to spend tokens on your behalf.
-  - **Transfer From:** Use `transferFrom(_from, _to, _amount)` to transfer tokens from one address to another using allowance.
-
-## Additional Information
-
-- **OpenZeppelin Dependency:** The `GameToken.sol` contract uses OpenZeppelin's ERC-20 implementation. Ensure that the OpenZeppelin package is installed or properly imported in Remix.
-
-- **Testing:** It is recommended to test these contracts on a test network (e.g., Ropsten, Rinkeby) before deploying to the main Ethereum network.
-
-- **MetaMask:** Connect MetaMask to Remix to interact with your deployed contracts.
-
-## License
-
-This project is licensed under the MIT License 
-# AUTHOR
-RAHUL TIWARY (rahult7526@gmail.com)
+Author:
+Rahul Tiwary
+rahult7526@gmail.com
